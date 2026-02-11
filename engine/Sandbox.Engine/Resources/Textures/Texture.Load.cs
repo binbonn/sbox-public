@@ -31,12 +31,27 @@ public partial class Texture
 	static Dictionary<string, WeakReference<Texture>> Loaded = new();
 	static Dictionary<IntPtr, WeakReference<Texture>> LoadedByPointer = new();
 
+	private static bool IsLikelyRemoteOrDataUri( string filepath )
+	{
+		if ( string.IsNullOrEmpty( filepath ) )
+			return false;
+
+		if ( filepath.StartsWith( "http://", System.StringComparison.OrdinalIgnoreCase ) )
+			return true;
+
+		if ( filepath.StartsWith( "https://", System.StringComparison.OrdinalIgnoreCase ) )
+			return true;
+
+		if ( filepath.StartsWith( "data:", System.StringComparison.OrdinalIgnoreCase ) )
+			return true;
+
+		return false;
+	}
+
 	internal static string NormalizeLookupPath( string filepath )
 	{
 		// Keep remote URLs and data URIs case-sensitive, but keep normal file paths normalized/lowercase.
-		// Detect data URIs case-insensitively to avoid corrupting the base64 payload by lowercasing it.
-		var isDataUri = filepath.StartsWith( "data:", StringComparison.OrdinalIgnoreCase );
-		var enforceLowerCase = !(TextureLoader.ImageUrl.IsAppropriate( filepath ) || TextureLoader.ImageDataUri.IsAppropriate( filepath ) || isDataUri);
+		var enforceLowerCase = !IsLikelyRemoteOrDataUri( filepath );
 		var normalizedFilename = filepath.NormalizeFilename( false, enforceLowerCase );
 
 		if ( normalizedFilename.StartsWith( '/' ) )
