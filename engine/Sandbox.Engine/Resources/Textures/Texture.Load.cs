@@ -31,6 +31,18 @@ public partial class Texture
 	static Dictionary<string, WeakReference<Texture>> Loaded = new();
 	static Dictionary<IntPtr, WeakReference<Texture>> LoadedByPointer = new();
 
+	internal static string NormalizeLookupPath( string filepath )
+	{
+		// Keep remote URLs and data URIs case-sensitive, but keep normal file paths normalized/lowercase.
+		var enforceLowerCase = !(TextureLoader.ImageUrl.IsAppropriate( filepath ) || TextureLoader.ImageDataUri.IsAppropriate( filepath ));
+		var normalizedFilename = filepath.NormalizeFilename( false, enforceLowerCase );
+
+		if ( normalizedFilename.StartsWith( '/' ) )
+			normalizedFilename = normalizedFilename[1..];
+
+		return normalizedFilename;
+	}
+
 	/// <summary>
 	/// Try to load a texture from given filesystem, by filename.
 	/// </summary>
@@ -61,10 +73,7 @@ public partial class Texture
 		if ( Sandbox.Mounting.Directory.TryLoad( filepath, ResourceType.Texture, out object model ) && model is Texture m )
 			return m;
 
-		var normalizedFilename = filepath.NormalizeFilename( false );
-
-		if ( normalizedFilename.StartsWith( '/' ) )
-			normalizedFilename = normalizedFilename[1..];
+		var normalizedFilename = NormalizeLookupPath( filepath );
 
 		if ( Find( normalizedFilename ) is Texture existing )
 			return existing;
@@ -258,7 +267,7 @@ public partial class Texture
 		//if ( Host.IsUnitTest ) return null;
 		if ( string.IsNullOrWhiteSpace( filepath ) ) return null;
 
-		filepath = filepath.NormalizeFilename( false );
+		filepath = NormalizeLookupPath( filepath );
 
 		if ( Loaded.TryGetValue( filepath, out var val ) )
 		{
