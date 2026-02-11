@@ -34,7 +34,9 @@ public partial class Texture
 	internal static string NormalizeLookupPath( string filepath )
 	{
 		// Keep remote URLs and data URIs case-sensitive, but keep normal file paths normalized/lowercase.
-		var enforceLowerCase = !(TextureLoader.ImageUrl.IsAppropriate( filepath ) || TextureLoader.ImageDataUri.IsAppropriate( filepath ));
+		// Detect data URIs case-insensitively to avoid corrupting the base64 payload by lowercasing it.
+		var isDataUri = filepath.StartsWith( "data:", StringComparison.OrdinalIgnoreCase );
+		var enforceLowerCase = !(TextureLoader.ImageUrl.IsAppropriate( filepath ) || TextureLoader.ImageDataUri.IsAppropriate( filepath ) || isDataUri);
 		var normalizedFilename = filepath.NormalizeFilename( false, enforceLowerCase );
 
 		if ( normalizedFilename.StartsWith( '/' ) )
