@@ -103,14 +103,18 @@ public partial class Texture
 		//if ( Host.IsUnitTest ) return null;
 		if ( string.IsNullOrWhiteSpace( filepath ) ) return null;
 
-		filepath = filepath.Replace( ".vtex_c", ".vtex" );
+		var isRemoteOrDataUri = IsLikelyRemoteOrDataUri( filepath );
+		if ( !isRemoteOrDataUri && filepath.EndsWith( ".vtex_c", StringComparison.OrdinalIgnoreCase ) )
+		{
+			filepath = filepath[..^".vtex_c".Length] + ".vtex";
+		}
 
 		if ( Sandbox.Mounting.Directory.TryLoad( filepath, ResourceType.Texture, out object model ) && model is Texture m )
 			return m;
 
 		var normalizedFilename = NormalizeLookupPath( filepath );
 
-		if ( Find( normalizedFilename ) is Texture existing )
+		if ( FindNormalized( normalizedFilename ) is Texture existing )
 			return existing;
 
 		var tex = TryToLoad( filesystem, normalizedFilename, warnOnMissing );
@@ -303,7 +307,11 @@ public partial class Texture
 		if ( string.IsNullOrWhiteSpace( filepath ) ) return null;
 
 		filepath = NormalizeLookupPath( filepath );
+		return FindNormalized( filepath );
+	}
 
+	internal static Texture FindNormalized( string filepath )
+	{
 		if ( Loaded.TryGetValue( filepath, out var val ) )
 		{
 			if ( val.TryGetTarget( out var target ) )
