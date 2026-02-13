@@ -48,10 +48,28 @@ public partial class Texture
 		return false;
 	}
 
+	private static string NormalizeUriScheme( string filepath )
+	{
+		if ( filepath.StartsWith( "http://", System.StringComparison.OrdinalIgnoreCase ) )
+			return $"http://{filepath["http://".Length..]}";
+
+		if ( filepath.StartsWith( "https://", System.StringComparison.OrdinalIgnoreCase ) )
+			return $"https://{filepath["https://".Length..]}";
+
+		if ( filepath.StartsWith( "data:", System.StringComparison.OrdinalIgnoreCase ) )
+			return $"data:{filepath["data:".Length..]}";
+
+		return filepath;
+	}
+
 	internal static string NormalizeLookupPath( string filepath )
 	{
 		// Keep remote URLs and data URIs case-sensitive, but keep normal file paths normalized/lowercase.
-		var enforceLowerCase = !IsLikelyRemoteOrDataUri( filepath );
+		var isRemoteOrDataUri = IsLikelyRemoteOrDataUri( filepath );
+		if ( isRemoteOrDataUri )
+			filepath = NormalizeUriScheme( filepath );
+
+		var enforceLowerCase = !isRemoteOrDataUri;
 		var normalizedFilename = filepath.NormalizeFilename( false, enforceLowerCase );
 
 		if ( normalizedFilename.StartsWith( '/' ) )
