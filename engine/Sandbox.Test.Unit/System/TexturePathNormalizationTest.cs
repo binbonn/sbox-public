@@ -1,3 +1,5 @@
+using Sandbox.TextureLoader;
+
 namespace SystemTest;
 
 [TestClass]
@@ -42,7 +44,7 @@ public class TexturePathNormalizationTest
 	[TestMethod]
 	public void ImageDataUri_IsAppropriate_IgnoresPrefixCase()
 	{
-		Assert.IsTrue( TextureLoader.ImageDataUri.IsAppropriate( "DATA:IMAGE/PNG;BASE64,AA==" ) );
-		Assert.IsTrue( TextureLoader.ImageDataUri.IsAppropriate( "Data:Image/Jpeg;Base64,AA==" ) );
+		Assert.IsTrue( ImageDataUri.IsAppropriate( "DATA:IMAGE/PNG;BASE64,AA==" ) );
+		Assert.IsTrue( ImageDataUri.IsAppropriate( "Data:Image/Jpeg;Base64,AA==" ) );
 	}
 }
